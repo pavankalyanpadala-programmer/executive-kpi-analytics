@@ -241,15 +241,15 @@ The Tableau dashboards provide **executive-level visibility** into business perf
 📸 Dashboard screenshots are included in the repository.
 
 ### 📊 Executive Overview
-![Executive Dashboard](screenshots/dashboard_overview.png)
+![Executive Dashboard](dashboard_overview.png)
 *KPI summary: MRR, ARR, churn rate, and growth trends*
 
 ### 📉 Cohort Retention Heatmap
-![Cohort Analysis](screenshots/cohort_retention.png)
+![Cohort Analysis](cohort_retention.png)
 *Month-over-month retention by customer signup cohort*
 
 ### 🎯 Churn Analysis
-![Churn Dashboard](screenshots/churn_analysis.png)
+![Churn Dashboard](churn_analysis.png)
 *Churn drivers by segment, plan type, and usage patterns*
 
 > 💡 **Note:** Interactive Tableau workbook available in `dashboards/` folder
@@ -319,7 +319,7 @@ executive-kpi-analytics/
 │   └── executive_kpi_dashboard.twbx
 ├── notebooks/
 │   └── analysis.ipynb
-├── screenshots/
+├── 
 │   └── dashboard_previews.png
 └── README.md
 ```
