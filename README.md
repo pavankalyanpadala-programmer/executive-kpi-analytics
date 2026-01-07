@@ -93,7 +93,8 @@ Clear KPI definitions ensure **consistent and interpretable metrics** for stakeh
 
 ---
 
-## 🧮 SQL Highlights
+100
+
 
 Example SQL used to compute **monthly revenue trends**:
 
@@ -119,9 +120,115 @@ This demonstrates:
 - **Window functions**
 - **Time-based trend analysis**
 
+- ### 2️⃣ **Churn Rate Calculation**
+
+```sql
+-- Calculate monthly churn rate
+WITH monthly_stats AS (
+  SELECT
+    DATE_TRUNC('month', churn_date) AS month,
+    COUNT(DISTINCT customer_id) AS churned_customers
+  FROM churn_events
+  GROUP BY 1
+),
+active_customers AS (
+  SELECT
+    DATE_TRUNC('month', start_date) AS month,
+    COUNT(DISTINCT customer_id) AS total_active
+  FROM subscriptions
+  WHERE status = 'active'
+  GROUP BY 1
+)
+SELECT
+  a.month,
+  COALESCE(c.churned_customers, 0) AS churned,
+  a.total_active AS active_customers,
+  ROUND(100.0 * COALESCE(c.churned_customers, 0) / NULLIF(a.total_active, 0), 2) AS churn_rate_pct
+FROM active_customers a
+LEFT JOIN monthly_stats c ON a.month = c.month
+ORDER BY a.month;
+```
+
+This demonstrates:
+- **Multiple CTEs** for complex logic
+- **LEFT JOIN** to handle months with zero churn
+- **COALESCE** for null handling
+- **Percentage calculations**
+
+- ### 3️⃣ **Cohort Retention Analysis**
+
+```sql
+-- Cohort retention by signup month
+WITH cohorts AS (
+  SELECT
+    customer_id,
+    DATE_TRUNC('month', signup_date) AS cohort_month
+  FROM customers
+),
+activity AS (
+  SELECT
+    c.customer_id,
+    c.cohort_month,
+    DATE_TRUNC('month', p.payment_date) AS activity_month,
+    EXTRACT(MONTH FROM AGE(p.payment_date, c.cohort_month)) AS months_since_signup
+  FROM cohorts c
+  JOIN payments p ON c.customer_id = p.customer_id
+)
+SELECT
+  cohort_month,
+  months_since_signup,
+  COUNT(DISTINCT customer_id) AS active_customers,
+  ROUND(100.0 * COUNT(DISTINCT customer_id) / 
+    FIRST_VALUE(COUNT(DISTINCT customer_id)) OVER (
+      PARTITION BY cohort_month ORDER BY months_since_signup
+    ), 2) AS retention_rate_pct
+FROM activity
+GROUP BY 1, 2
+ORDER BY 1, 2;
+```
+
+This demonstrates:
+- **Self-joins** for temporal analysis
+- **FIRST_VALUE window function** for cohort base calculation
+- **AGE function** for month difference
+- **Cohort-based grouping**
+
+- ### 4️⃣ **Average Revenue Per User (ARPU)**
+
+```sql
+-- Calculate ARPU by month and segment
+WITH monthly_revenue AS (
+  SELECT
+    DATE_TRUNC('month', p.payment_date) AS month,
+    c.segment,
+    SUM(p.amount) AS total_revenue,
+    COUNT(DISTINCT p.customer_id) AS active_customers
+  FROM payments p
+  JOIN customers c ON p.customer_id = c.customer_id
+  GROUP BY 1, 2
+)
+SELECT
+  month,
+  segment,
+  total_revenue,
+  active_customers,
+  ROUND(total_revenue / NULLIF(active_customers, 0), 2) AS arpu,
+  LAG(ROUND(total_revenue / NULLIF(active_customers, 0), 2)) 
+    OVER (PARTITION BY segment ORDER BY month) AS prev_arpu
+FROM monthly_revenue
+ORDER BY segment, month;
+```
+
+This demonstrates:
+- **JOINs across multiple tables**
+- **Segmentation analysis**
+- **Null-safe division** with NULLIF
+- **LAG for period-over-period comparison**
+
 ---
 
-## 📈 Dashboards (Tableau)
+230
+(Tableau)
 
 The Tableau dashboards provide **executive-level visibility** into business performance:
 
@@ -132,6 +239,20 @@ The Tableau dashboards provide **executive-level visibility** into business perf
 - **Churn Analysis**: Churn by segment and usage behavior
 
 📸 Dashboard screenshots are included in the repository.
+
+### 📊 Executive Overview
+![Executive Dashboard](screenshots/dashboard_overview.png)
+*KPI summary: MRR, ARR, churn rate, and growth trends*
+
+### 📉 Cohort Retention Heatmap
+![Cohort Analysis](screenshots/cohort_retention.png)
+*Month-over-month retention by customer signup cohort*
+
+### 🎯 Churn Analysis
+![Churn Dashboard](screenshots/churn_analysis.png)
+*Churn drivers by segment, plan type, and usage patterns*
+
+> 💡 **Note:** Interactive Tableau workbook available in `dashboards/` folder
 
 ---
 
@@ -150,8 +271,40 @@ The Tableau dashboards provide **executive-level visibility** into business perf
 These insights demonstrate how **analytics directly informs business decisions**.
 
 ---
+## 🚀 How to Use This Repo
 
-## 📂 Repository Structure
+### Step 1: Load Data into PostgreSQL
+```bash
+# Start PostgreSQL via Docker
+docker run -d \
+  --name exec-kpi-postgres \
+  -e POSTGRES_PASSWORD=analytics_pass \
+  -p 5432:5432 \
+  postgres:18
+
+# Load CSVs from data/processed/ folder
+```
+
+### Step 2: Run SQL Analytics
+```bash
+# Execute KPI queries
+psql -U postgres -d executive_kpi -f sql/kpi_metrics.sql
+psql -U postgres -d executive_kpi -f sql/cohort_analysis.sql
+psql -U postgres -d executive_kpi -f sql/churn_analysis.sql
+```
+
+### Step 3: View Tableau Dashboards
+- Open `dashboards/Executive_KPI_Dashboard.twbx` in Tableau Public
+- Refresh data connection if needed
+- Explore interactive visualizations
+
+### Step 4: Use for Interviews
+- Reference SQL examples during technical discussions
+- Present dashboard screenshots in case studies
+- Explain business insights to demonstrate impact
+
+280
+
 
 ```
 executive-kpi-analytics/
