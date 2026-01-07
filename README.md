@@ -1,181 +1,203 @@
-# 📊 Executive KPI & Business Performance Analytics
+# Executive KPI & Business Performance Analytics Platform
 
-> **End-to-end SaaS analytics platform** demonstrating PostgreSQL, Python, and Tableau for executive-level business intelligence
-
-[![Tableau Dashboard](https://img.shields.io/badge/Tableau-Live%20Dashboard-blue?style=for-the-badge&logo=tableau)](https://public.tableau.com/app/profile/pavankalyan.padala/viz/Executive-KPI-Analytics-SaaS/ExecutiveKPIDashboard-SaaSPerformance)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
-[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python)](https://www.python.org/)
+**SaaS Subscription Analytics**
 
 ---
 
-## 🎯 Project Overview
+## 📌 Project Overview
 
-Executive-level analytics platform built for a **SaaS subscription business**, tracking key performance indicators critical to CFOs, CEOs, and investors. This project demonstrates full-stack data engineering: from database design and data generation to advanced SQL analytics and interactive visualization.
+This project builds an **end-to-end analytics platform** for a B2B SaaS subscription business, designed to help leadership track growth, retention, and revenue performance through well-defined KPIs, advanced SQL analytics, and executive dashboards.
 
-### 📈 Key Business Metrics
-
-| Metric | Value | Description |
-|--------|-------|-------------|
-| 💰 **MRR** | $238,056 | Monthly Recurring Revenue |
-| 📅 **ARR** | $2.86M | Annual Recurring Revenue |
-| 👥 **Active Customers** | 456 of 500 | 91.2% retention rate |
-| 💵 **ARPU** | $522 | Average Revenue Per User |
-| 📉 **Churn Rate** | 8.8% | Logo churn (annual) |
+The platform demonstrates how raw transactional and usage data can be transformed into **actionable business insights** using PostgreSQL, advanced SQL, and Tableau.
 
 ---
 
-## 🚀 Live Demo
+## 🧠 Business Problem
 
-**[→ View Interactive Dashboard on Tableau Public](https://public.tableau.com/app/profile/pavankalyan.padala/viz/Executive-KPI-Analytics-SaaS/ExecutiveKPIDashboard-SaaSPerformance)**
+SaaS companies rely on **key performance indicators (KPIs)** such as MRR, churn, and retention to understand business health and guide strategic decisions.
 
-The dashboard features:
-- 📊 **Monthly Revenue Trends** - Seasonal patterns and growth analysis
-- 👥 **Customer Growth** - Cumulative acquisition from 50 to 500 customers
-- 💼 **Segment Performance** - MRR breakdown (Enterprise, Mid-Market, SMB)
+However, raw data is often spread across multiple systems (subscriptions, payments, usage logs), making it difficult to:
+
+- Measure revenue growth accurately
+- Identify churn drivers
+- Understand customer behavior by segment
+- Provide leadership with a single source of truth
+
+This project addresses those challenges by building a **SQL-first analytics pipeline** and executive dashboards for KPI tracking and decision support.
 
 ---
 
-## 🛠️ Technology Stack
+## 🎯 Project Goals
 
+- Define and compute **core SaaS KPIs** from raw data
+- Perform **advanced SQL analysis** using CTEs and window functions
+- Build **executive-level Tableau dashboards** for KPI storytelling
+- Identify key trends and churn drivers
+- Translate analytics into **business recommendations**
+
+---
+
+## 🗂️ Data Model
+
+The analysis uses a realistic SaaS-style data model:
+
+- **customers** – customer attributes (industry, region, signup date)
+- **subscriptions** – plan type, billing cycle, status
+- **payments** – invoices, payment amounts, timestamps
+- **usage_events** – product feature usage logs
+- **churn_events** – churn dates and reasons
+
+Synthetic data is generated to reflect realistic SaaS growth and churn patterns.
+
+---
+
+## 📊 Key KPIs Tracked
+
+### Revenue Metrics
+- **MRR** (Monthly Recurring Revenue)
+- **ARR** (Annual Recurring Revenue)
+- **Revenue Growth** (MoM)
+- **ARPU** (Average Revenue Per User)
+
+### Retention Metrics
+- Customer **Churn Rate**
+- **Net Revenue Retention**
+- **Cohort Retention**
+
+### Customer & Product Metrics
+- Revenue by plan type and industry
+- Usage patterns vs churn
+- Segment-level performance
+
+---
+
+## 📐 KPI Definitions
+
+- **MRR** = Sum of active monthly subscription revenue
+- **ARR** = MRR × 12
+- **Churn Rate** = (Customers churned in period) / (Active customers at start of period)
+- **ARPU** = Total revenue / Active customers
+- **Retention Rate** = Percentage of customers retained over time by cohort
+
+Clear KPI definitions ensure **consistent and interpretable metrics** for stakeholders.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Database**: PostgreSQL
+- **Querying**: Advanced SQL (CTEs, Window Functions, Aggregations)
+- **Data Processing**: Python
+- **Visualization**: Tableau
+- **Version Control**: GitHub
+
+---
+
+## 🧮 SQL Highlights
+
+Example SQL used to compute **monthly revenue trends**:
+
+```sql
+WITH monthly_revenue AS (
+  SELECT
+    DATE_TRUNC('month', payment_date) AS month,
+    SUM(amount) AS revenue
+  FROM payments
+  GROUP BY 1
+)
+SELECT
+  month,
+  revenue,
+  LAG(revenue) OVER (ORDER BY month) AS previous_month_revenue,
+  (revenue - LAG(revenue) OVER (ORDER BY month))
+    / NULLIF(LAG(revenue) OVER (ORDER BY month), 0) AS revenue_growth_rate
+FROM monthly_revenue;
 ```
-┌─────────────┬──────────────────────────────────────┐
-│ Database    │ PostgreSQL 18 (Docker)               │
-│ Language    │ Python 3.8+                          │
-│ Libraries   │ psycopg2, Faker                      │
-│ Analytics   │ Advanced SQL (CTEs, Window Functions)│
-│ Visualization│ Tableau Public                      │
-└─────────────┴──────────────────────────────────────┘
-```
+
+This demonstrates:
+- **CTE usage**
+- **Window functions**
+- **Time-based trend analysis**
 
 ---
 
-## 📁 Project Structure
+## 📈 Dashboards (Tableau)
+
+The Tableau dashboards provide **executive-level visibility** into business performance:
+
+- **Executive Overview**: MRR, growth rate, churn
+- **Revenue Trends**: Monthly and yearly trends
+- **Customer Segmentation**: Revenue by industry and plan
+- **Cohort Retention**: Retention heatmaps
+- **Churn Analysis**: Churn by segment and usage behavior
+
+📸 Dashboard screenshots are included in the repository.
+
+---
+
+## 🔍 Key Insights & Business Recommendations
+
+### Key Insights
+- **Annual plans** show significantly lower churn compared to monthly plans
+- **Enterprise customers** contribute the majority of MRR, but SMB churn is higher
+- **Low product usage** correlates strongly with churn, indicating onboarding gaps
+
+### Recommendations
+- Incentivize customers to move from monthly to annual plans
+- Improve onboarding and engagement for SMB customers
+- Focus retention efforts on high-risk, low-usage segments
+
+These insights demonstrate how **analytics directly informs business decisions**.
+
+---
+
+## 📂 Repository Structure
 
 ```
 executive-kpi-analytics/
-│
-├── 📂 data/
-│   ├── raw/                    # Raw data exports
-│   └── processed/              # CSV files for Tableau
-│       ├── customers.csv       # 500 customer records
-│       ├── subscriptions.csv   # 589 subscription records
-│       └── invoices.csv        # 4,991 invoice records
-│
-├── 📂 sql/
-│   └── executive_kpis.sql      # Advanced SQL queries for KPI calculations
-│
-├── 🐍 generate_saas_data.py    # Generates realistic SaaS business data
-├── 🐍 export_to_csv.py         # Exports PostgreSQL data to CSV
-└── 📋 README.md                # Project documentation
+├── data/
+│   ├── raw/
+│   └── processed/
+├── sql/
+│   ├── kpi_metrics.sql
+│   ├── cohort_analysis.sql
+│   └── churn_analysis.sql
+├── dashboards/
+│   └── executive_kpi_dashboard.twbx
+├── notebooks/
+│   └── analysis.ipynb
+├── screenshots/
+│   └── dashboard_previews.png
+└── README.md
 ```
 
 ---
 
-## ⚡ Quick Start
+## 🚀 How This Project Adds Value
 
-### Prerequisites
-- Docker Desktop installed
-- Python 3.8+
-- Tableau Public (free download)
+This project demonstrates:
 
-### 1️⃣ Start PostgreSQL Database
+- Strong **business analytics thinking**
+- **Advanced SQL** and KPI design
+- Clear **executive storytelling**
+- Ability to translate data into **actionable recommendations**
 
-```bash
-docker run -d \
-  --name exec-kpi-postgres \
-  -e POSTGRES_USER=analytics_user \
-  -e POSTGRES_PASSWORD=analytics_pass \
-  -e POSTGRES_DB=executive_kpi \
-  -v exec_kpi_pgdata:/var/lib/postgresql \
-  -p 5432:5432 \
-  postgres
-```
-
-### 2️⃣ Install Python Dependencies
-
-```bash
-pip install psycopg2-binary Faker
-```
-
-### 3️⃣ Generate Sample Data
-
-```bash
-python generate_saas_data.py
-```
-
-**Output:**
-- ✅ 500 customers across 3 segments (SMB, Mid-Market, Enterprise)
-- ✅ 589 subscriptions with varied pricing ($50-$5000/month)
-- ✅ 4,991 invoices spanning 2024-2025
-- ✅ Realistic churn patterns (15% annual rate)
-
-### 4️⃣ Export to CSV for Tableau
-
-```bash
-python export_to_csv.py
-```
-
-### 5️⃣ Connect Tableau
-
-1. Open Tableau Public
-2. Connect to CSV files in `data/processed/`
-3. Set up relationships:
-   - `customers.customer_id` ↔ `subscriptions.customer_id`
-   - `subscriptions.subscription_id` ↔ `invoices.subscription_id`
+It complements machine learning and AI-focused projects by showcasing **analytics leadership** and **decision support skills**.
 
 ---
 
-## 💡 Key Features
-
-### 🔹 Business Insights
-
-| Segment | MRR | % of Total | Customers |
-|---------|-----|------------|-----------|  
-| 🏢 **Enterprise** | $125,000 | 52% | 50 |
-| 🏪 **Mid-Market** | $93,000 | 39% | 150 |
-| 🏠 **SMB** | $20,000 | 9% | 300 |
-
-### 🔹 Skills Demonstrated
-
-- ✅ **Database Design** - Normalized schema for SaaS metrics
-- ✅ **Data Engineering** - ETL pipeline with Python
-- ✅ **SQL Proficiency** - CTEs, window functions, date operations  
-- ✅ **Business Intelligence** - KPI calculations (MRR, ARR, churn, ARPU)
-- ✅ **Data Visualization** - Executive-level Tableau dashboards
-- ✅ **DevOps** - Docker containerization
-
----
-
-## 💼 Business Value
-
-### For Executives
-- Track revenue health and growth trends
-- Identify high-value customer segments
-- Monitor churn and retention metrics  
-- Make data-driven strategic decisions
-
-### For Investors  
-- Validate ARR growth trajectory
-- Assess unit economics (ARPU, CAC payback)
-- Evaluate customer retention
-- Understand revenue concentration by segment
-
----
-
-## 👨‍💻 Author
+## 👤 Author
 
 **Pavan Kalyan Padala**  
 *Data Scientist | Analytics Engineer*
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/yourprofile)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/pavankalyanpadala-programmer)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-FF5722?style=for-the-badge&logo=google-chrome)](https://applywizz-pavan-kalyan.vercel.app/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/yourprofile) [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github)](https://github.com/pavankalyanpadala-programmer) [![Portfolio](https://img.shields.io/badge/Portfolio-Visit-FF5722?style=for-the-badge&logo=google-chrome)](https://applywizz-pavan-kalyan.vercel.app/)
 
 ---
 
-## 📝 License
+## 📄 License
 
-MIT License - Free to use for learning and portfolio purposes.
+MIT License – Free to use for learning and portfolio purposes.
 
 ---
 
@@ -185,10 +207,6 @@ Built as a portfolio project to demonstrate end-to-end data engineering and busi
 
 ---
 
-<div align="center">
-
 **⭐ Star this repo if you found it helpful!**
 
 *Last Updated: January 2026*
-
-</div>
